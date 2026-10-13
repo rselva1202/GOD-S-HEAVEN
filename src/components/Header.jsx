@@ -3,21 +3,6 @@ import { navigation, siteConfig } from '../data/siteConfig'
 import { BrandMark, Button } from './UI'
 
 export default function Header({ menuOpen, onMenuToggle }) {
-  const [hidden, setHidden] = useState(false)
-  const [solid, setSolid] = useState(false)
-
-  useEffect(() => {
-    let lastScroll = window.scrollY
-    const onScroll = () => {
-      const current = window.scrollY
-      setSolid(current > window.innerHeight * 0.72)
-      setHidden(current > lastScroll && current > 90)
-      lastScroll = current
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.key === 'Escape' && menuOpen) onMenuToggle(false)
@@ -28,14 +13,14 @@ export default function Header({ menuOpen, onMenuToggle }) {
 
   const closeMenu = () => onMenuToggle(false)
   return <>
-    <header className={`site-header ${hidden && !menuOpen ? 'site-header--hidden' : ''} ${solid ? 'site-header--solid' : ''} ${menuOpen ? 'site-header--menu-open' : ''}`}>
-      <a className="site-header__logo" href="#top" aria-label={`${siteConfig.brand.shortName} home`}><BrandMark light={!solid && !menuOpen} /></a>
+    <header className={`site-header ${menuOpen ? 'site-header--menu-open' : ''}`}>
+      <a className="site-header__logo" href="#top" aria-label={`${siteConfig.brand.shortName} home`}><BrandMark light={!menuOpen} /></a>
       <nav className="site-header__nav" aria-label="Main navigation">
         {navigation.map((item) => <a key={item.href} href={item.href}>{item.label}</a>)}
       </nav>
       <div className="site-header__actions">
         <a className="site-header__phone" href={siteConfig.brand.phoneHref} target="_blank" rel="noreferrer">WhatsApp</a>
-        <Button href="#reservation" variant={solid || menuOpen ? 'primary' : 'light'}>Book a table</Button>
+        <Button href="#reservation" variant="primary">Book a table</Button>
         <button className="menu-toggle" type="button" onClick={() => onMenuToggle(!menuOpen)} aria-expanded={menuOpen} aria-controls="mobile-menu"><span /><span /><span /><b>{menuOpen ? 'Close' : 'Menu'}</b></button>
       </div>
     </header>

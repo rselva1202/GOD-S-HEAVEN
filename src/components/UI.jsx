@@ -272,12 +272,10 @@ export function CustomCursor() {
         if (ringRef.current) ringRef.current.className = 'custom-cursor__ring is-reserve'
         if (labelRef.current) labelRef.current.textContent = 'Reserve'
       } else if (target.classList.contains('button') || target.tagName === 'BUTTON' || target.closest('.button')) {
-        activeMode = 'magnetic'
-        const rect = target.getBoundingClientRect()
-        // Magnetic pull gently attracts the cursor ring towards the center of button
-        targetMagneticX = rect.left + rect.width / 2
-        targetMagneticY = rect.top + rect.height / 2
-        if (ringRef.current) ringRef.current.className = 'custom-cursor__ring is-magnetic'
+        activeMode = 'hover'
+        targetMagneticX = null
+        targetMagneticY = null
+        if (ringRef.current) ringRef.current.className = 'custom-cursor__ring is-hover'
         if (labelRef.current) labelRef.current.textContent = ''
       } else {
         activeMode = 'hover'

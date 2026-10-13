@@ -389,9 +389,7 @@ export default function App() {
       {/* 12. Footer */}
       <FooterSection />
 
-      {/* Global Interactive Floating UI */}
-      <WhatsAppFloat />
-      <BackToTop />
+      {/* Global Interactive UI */}
       <Lightbox image={lightbox} onClose={() => setLightbox(null)} />
       <CustomCursor />
       
