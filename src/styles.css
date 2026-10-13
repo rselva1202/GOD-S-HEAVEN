@@ -1163,7 +1163,47 @@ body.menu-open .whatsapp-float { opacity: 0; pointer-events: none; transition: o
 .reviews-counter { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .reviews-counter__num { font-family: var(--display); font-size: clamp(3.5rem, 7vw, 6.2rem); line-height: .9; color: var(--sand); font-weight: 400; letter-spacing: -.04em; }
 .reviews-counter__label { font-size: .68rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--sea-foam); }
-.review-card__badge-sample { position: absolute; top: 18px; right: 0; padding: 3px 10px; border: 1px solid rgba(247,244,238,.2); border-radius: 999px; font-size: .48rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--sea-foam); }
+.reviews-counter__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 11px 22px;
+  background: #FFFFFF;
+  color: #1A1A1A;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  transition: all .35s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+}
+.reviews-counter__btn:hover {
+  background: var(--sand);
+  color: var(--ink);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.25);
+  border-color: #FFFFFF;
+}
+.reviews-counter__google-icon {
+  flex-shrink: 0;
+  transition: transform .3s ease;
+}
+.reviews-counter__btn:hover .reviews-counter__google-icon {
+  transform: scale(1.15) rotate(6deg);
+}
+.reviews-counter__btn-arrow {
+  font-size: .88rem;
+  line-height: 1;
+  transition: transform .3s ease;
+}
+.reviews-counter__btn:hover .reviews-counter__btn-arrow {
+  transform: translate(3px, -3px);
+}
 
 /* Events section */
 .events { padding: clamp(90px, 11vw, 160px) 0; }

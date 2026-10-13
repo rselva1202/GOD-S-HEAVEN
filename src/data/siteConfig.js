@@ -375,6 +375,7 @@ export const siteConfig = {
     counter: 3800,
     counterSuffix: '+',
     counterLabel: 'Google Reviews',
+    googleReviewUrl: 'https://www.google.com/search?sca_esv=074237d04407bddc&sxsrf=APpeQnvLkAb7Hz__kXBC10L1XNilfnkAiw:1791914132479&si=APenkKm7iecQ4G6P-TsbSMFKIQtv3EFIqRAFw-i8uEbk55Z-_wQ9Lp_STEoGp8uhdZKydT3D11ddsyoZqzZ8tq9LL9qpQeUkCNWMG4JNiJG-fFzmsKnVgn_ofgVFcDC7BN4Qzu3GGNzILr39ya6XO7hdq-EYjFWbHw%3D%3D&q=God%27s+Own+Country+Kitchen+Reviews&sa=X&ved=2ahUKEwjdhdaqyLeXAxX8jeEIHXiBF3QQ0bkNegQIKxAF&biw=1366&bih=679&dpr=1#',
     eyebrow: 'Kind words from our guests',
     title: 'Loved by over 3,800 diners on Google.',
     reviews: [
