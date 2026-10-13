@@ -6,19 +6,89 @@ import brandLogo from '../assets/logo.png'
 
 export function AboutSection() {
   const logoSrc = brandLogo || siteConfig.brand.logo
+  const archRef = useRef(null)
+  const imageWrapRef = useRef(null)
+
+  // 3D tilt interaction on mouse move for the arched image
+  const handleMouseMove = (e) => {
+    if (!archRef.current) return
+    const rect = archRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left - rect.width / 2
+    const y = e.clientY - rect.top - rect.height / 2
+    const rotateX = -(y / (rect.height / 2)) * 6 // max 6 deg
+    const rotateY = (x / (rect.width / 2)) * 6
+    archRef.current.style.transform = `perspective(800px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`
+  }
+
+  const handleMouseLeave = () => {
+    if (archRef.current) {
+      archRef.current.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)'
+    }
+  }
+
   return (
     <section className="about section-sand" id="about" aria-labelledby="about-title">
       <div className="about__grid page-shell">
-        <ImageReveal
-          image={siteConfig.images.about}
-          className="about__image"
-        />
+        {/* Layered Arched Image with rotating circular badge, offset terracotta outline, and Ken Burns zoom */}
+        <div
+          className="about__arch-container"
+          ref={archRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          data-arch-tilt
+        >
+          {/* Faint offset terracotta arch outline behind (layered depth) */}
+          <div className="about__arch-outline" aria-hidden="true" />
+
+          {/* Arched image wrapper with clip-path wipe & Ken Burns */}
+          <div className="about__arch-frame" ref={imageWrapRef}>
+            <ImageReveal
+              image={siteConfig.images.about}
+              className="about__image arch-kenburns"
+            />
+          </div>
+
+          {/* Rotating circular text badge around corner */}
+          <div className="about__badge-rotate" aria-hidden="true">
+            <svg viewBox="0 0 140 140" className="badge-svg">
+              <path
+                id="badgeTextPath"
+                d="M 70, 70 m -52, 0 a 52,52 0 1,1 104,0 a 52,52 0 1,1 -104,0"
+                fill="none"
+              />
+              <text className="badge-svg-text">
+                <textPath href="#badgeTextPath" startOffset="0%">
+                  VARKALA • NORTH CLIFF • HELIPAD •
+                </textPath>
+              </text>
+            </svg>
+            <span className="badge-icon" aria-hidden="true">≈</span>
+          </div>
+        </div>
+
         <div className="about__copy">
           <SectionHeading
             eyebrow={siteConfig.about?.eyebrow || 'Our Story & Perch'}
             title={siteConfig.about?.title || 'A cliff-top Kerala kitchen above the waves.'}
             body={siteConfig.about?.body}
           />
+
+          {/* 3 Animated Stat Counters under the story */}
+          <div className="about__stats" data-reveal>
+            <div className="about-stat">
+              <strong className="about-stat__num" data-count="365">365</strong>
+              <span className="about-stat__label">Sunset views every evening</span>
+            </div>
+            <div className="about-stat">
+              <strong className="about-stat__num">100%</strong>
+              <span className="about-stat__label">Fresh Arabian catch daily</span>
+            </div>
+            <div className="about-stat">
+              <strong className="about-stat__num">7 / 7</strong>
+              <span className="about-stat__label">Live music nights weekly</span>
+            </div>
+          </div>
+
           <div className="about__signature">
             {logoSrc ? (
               <img src={logoSrc} alt={siteConfig.brand.name} className="about__signature-logo" />
@@ -43,19 +113,71 @@ export function AboutSection() {
 
 export function HighlightsSection({ onHighlightSelect }) {
   const highlights = siteConfig.highlights || []
+
+  // Hover spotlight tracker (sets --x and --y on cards)
+  const handleCardMouseMove = (e) => {
+    const card = e.currentTarget
+    const rect = card.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    card.style.setProperty('--spot-x', `${x}px`)
+    card.style.setProperty('--spot-y', `${y}px`)
+  }
+
+  // Relevant photos behind cards for hover reveal (15% opacity with slow zoom)
+  const cardBgs = [
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80', // sea view
+    'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80', // kerala veg curry
+    'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80', // live music
+  ]
+
   return (
     <section className="highlights section-cream" id="highlights" aria-labelledby="highlights-title">
-      <div className="page-shell">
+      <div className="page-shell highlights__intro-wrap">
         <SectionHeading
           eyebrow="What We Offer"
           title="Cliffside Dining Highlights."
           body="Everything that makes an unhurried coastal meal on North Cliff special."
         />
-        <div className="highlights-grid">
+
+        {/* Floating parallax decorative wave graphic filling space to the right */}
+        <div className="highlights__cluster" aria-hidden="true">
+          <svg className="cluster-wave-svg" viewBox="0 0 320 80" fill="none">
+            <path
+              d="M10,40 Q80,10 160,40 T310,40"
+              stroke="var(--terracotta)"
+              strokeWidth="2.5"
+              strokeDasharray="6 6"
+              className="cluster-wave-path"
+            />
+          </svg>
+          <span className="cluster-pill">North Cliff • Varkala Perch</span>
+        </div>
+      </div>
+
+      <div className="highlights-pin-wrap">
+        <div className="highlights-grid page-shell">
           {highlights.map((item, idx) => (
-            <div className="highlight-card" key={item.id} data-reveal>
+            <div
+              className={`highlight-card highlight-card--${item.id}`}
+              key={item.id}
+              data-reveal
+              onMouseMove={handleCardMouseMove}
+            >
+              {/* Background photo reveal on hover (15% opacity) */}
+              <div
+                className="highlight-card__bg-reveal"
+                style={{ backgroundImage: `url(${cardBgs[idx % cardBgs.length]})` }}
+                aria-hidden="true"
+              />
+
+              {/* Radial spotlight effect */}
+              <div className="highlight-card__spotlight" aria-hidden="true" />
+
               <div className="highlight-card__top">
-                <span className="highlight-card__icon" aria-hidden="true">{item.icon}</span>
+                <span className={`highlight-card__icon highlight-card__icon--${item.id}`} aria-hidden="true">
+                  {item.icon}
+                </span>
                 <span className="highlight-card__tag">{item.tag}</span>
               </div>
               <h3>{item.title}</h3>
@@ -159,8 +281,16 @@ function AnimatedReviewsCounter({ target = 3800 }) {
 export function ReviewsSection() {
   const [active, setActive] = useState(0)
   const data = siteConfig.reviewsData || { reviews: [] }
-  const review = data.reviews?.[active] || {}
   const total = data.reviews?.length || 1
+  const review = data.reviews?.[active] || {}
+
+  // Auto-sliding review carousel
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActive((prev) => (prev + 1) % total)
+    }, 6500)
+    return () => clearInterval(timer)
+  }, [total])
 
   return (
     <section className="reviews section-ink" id="reviews" aria-labelledby="reviews-title">
@@ -174,7 +304,12 @@ export function ReviewsSection() {
           <AnimatedReviewsCounter target={data.counter || 3800} />
         </div>
 
-        <div className="review-card" data-reveal>
+        <div className="review-card" data-reveal key={active}>
+          <div className="review-card__stars" aria-label="5 out of 5 stars">
+            {'★★★★★'.split('').map((star, sIdx) => (
+              <span className="star-pop" key={sIdx} style={{ animationDelay: `${sIdx * 0.08}s` }}>{star}</span>
+            ))}
+          </div>
           <div className="review-card__quote">“</div>
           <blockquote>{review.quote}</blockquote>
           <div className="review-card__meta">
@@ -239,9 +374,8 @@ export function EventsSection({ onEnquireEvent }) {
 
 export function LocationSection() {
   const loc = siteConfig.location || {}
-  const waterWords = (siteConfig.brand.waterBodyName || 'Arabian Sea').split(' ')
-  const logoSrc = brandLogo || siteConfig.brand.logo
 
+  // Live status badge: "Open Sunset to Late" with pulsing green indicator
   return (
     <section className="location section-sand" id="location" aria-labelledby="location-title">
       <div className="location__grid page-shell">
@@ -251,6 +385,14 @@ export function LocationSection() {
             title={loc.title || 'Near the Helipad on North Cliff.'}
             body={loc.body}
           />
+
+          {/* Live Open / Closed Status Badge */}
+          <div className="live-status-badge" data-reveal>
+            <span className="live-status-dot" aria-hidden="true" />
+            <strong>Open Sunset to Late</strong>
+            <span>• Walk-ins & Reservations welcome</span>
+          </div>
+
           <div className="location__info-cards">
             <div className="info-card">
               <span className="info-card__label">Address</span>
@@ -278,7 +420,12 @@ export function LocationSection() {
           </div>
         </div>
 
-        <div className="map-embed-wrapper">
+        <div className="map-embed-wrapper" data-reveal>
+          {/* Animated dropping map pin with bounce */}
+          <div className="bouncing-map-pin" aria-hidden="true">
+            <span className="pin-pulse" />
+            <span className="pin-head">📍</span>
+          </div>
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3943.52622970911!2d76.7033032!3d8.7364556!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b05ef1c6cdef8c3%3A0xb901243366d650b8!2sGod's%20Own%20Country%20Kitchen!5e0!3m2!1sen!2sin!4v1791660658325!5m2!1sen!2sin"
             width="600"
@@ -380,6 +527,11 @@ export function FooterSection() {
             <a href={siteConfig.brand.mapsUrl} target="_blank" rel="noreferrer">Google Maps Location</a>
           </div>
         </div>
+      </div>
+
+      {/* Giant outlined brand name that fills with solid color on scroll */}
+      <div className="footer__giant-name page-shell" aria-hidden="true" data-footer-giant>
+        <span className="giant-outline-text">{siteConfig.brand.name}</span>
       </div>
 
       <div className="footer__bottom page-shell">

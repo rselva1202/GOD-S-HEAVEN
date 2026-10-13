@@ -354,6 +354,13 @@ export function Loader({ onComplete }) {
               {progress}%
             </span>
             <span className="loader__tagline">{tagline}</span>
+            {/* Thin terracotta progress line */}
+            <div className="loader__progress-bar-wrap" aria-hidden="true">
+              <div
+                className="loader__progress-bar-line"
+                style={{ transform: `scaleX(${progress / 100})` }}
+              />
+            </div>
           </div>
 
           {/* Horizon line with sinking sun */}
