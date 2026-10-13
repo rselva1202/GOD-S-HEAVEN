@@ -29,13 +29,15 @@ export default function LiveMusicSection({ onReserve }) {
             const isToday = item.dayIndex === todayDayIndex
             return (
               <article
-                className={`lineup-card ${isToday ? 'lineup-card--today' : ''}`}
+                className={`lineup-card lineup-card--${item.dayName.toLowerCase()} ${isToday ? 'lineup-card--today' : ''}`}
                 key={item.dayName}
               >
                 <div className="lineup-card__top">
                   <span className="lineup-card__day">{item.dayName}</span>
-                  {isToday && (
+                  {isToday ? (
                     <span className="lineup-card__tonight-badge">Tonight ★</span>
+                  ) : (
+                    <span className="lineup-card__day-badge">Live Set</span>
                   )}
                 </div>
 
@@ -58,7 +60,8 @@ export default function LiveMusicSection({ onReserve }) {
 
                 <div className="lineup-card__bottom">
                   <Button
-                    variant={isToday ? 'primary' : 'outline-light'}
+                    variant="primary"
+                    className={`lineup-card__btn ${isToday ? 'lineup-card__btn--today' : ''}`}
                     onClick={() =>
                       onReserve?.({
                         occasion: `${item.dayName} Live Music`,
@@ -66,7 +69,7 @@ export default function LiveMusicSection({ onReserve }) {
                       })
                     }
                   >
-                    <span>{isToday ? 'Reserve for Tonight' : `Reserve ${item.dayName}`}</span>
+                    <span>{isToday ? 'Reserve for Tonight ★' : `Book Table for ${item.dayName}`}</span>
                   </Button>
                 </div>
               </article>

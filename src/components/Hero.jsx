@@ -28,13 +28,15 @@ export default function Hero({ onBookTable, reducedMotion }) {
               </span>
             ))}
           </h1>
-          <p className="hero__subline">
-            {siteConfig.brand.heroHeadline || 'Fresh Arabian Sea catches, clifftop sunsets, and acoustic evenings.'}
-            <br />
-            <span className="hero__subline-details">
-              {siteConfig.brand.heroSubline}
-            </span>
-          </p>
+          {(siteConfig.brand.heroHeadline || siteConfig.brand.heroSubline) ? (
+            <p className="hero__subline">
+              {siteConfig.brand.heroHeadline}
+              {siteConfig.brand.heroHeadline && siteConfig.brand.heroSubline && <br />}
+              <span className="hero__subline-details">
+                {siteConfig.brand.heroSubline}
+              </span>
+            </p>
+          ) : null}
           <div className="hero__actions">
             <Button href="#reservation" onClick={onBookTable}>Book a table</Button>
             <Button href="#menu" variant="light">See the menu</Button>
