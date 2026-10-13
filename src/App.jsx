@@ -75,7 +75,7 @@ export default function App() {
         gsap.to('.hero__shade-sunset', {
           opacity: 1,
           ease: 'none',
-          scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true },
+          scrollTrigger: { trigger: '.hero-scroll-container', start: 'top top', end: 'bottom bottom', scrub: true },
         })
         gsap.fromTo(
           '.hero-copy-line',
@@ -196,7 +196,7 @@ export default function App() {
       <Header menuOpen={menuOpen} onMenuToggle={setMenuOpen} />
       <main>
         {/* 1. Hero */}
-        <Hero onBookTable={() => openReservation({ occasion: 'Sunset & Sea View Table' })} />
+        <Hero onBookTable={() => openReservation({ occasion: 'Sunset & Sea View Table' })} reducedMotion={reducedMotion} />
         <WaveDivider fill="var(--sand)" />
 
         {/* 2. About */}

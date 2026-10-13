@@ -485,11 +485,45 @@ body.menu-open .whatsapp-float { opacity: 0; pointer-events: none; transition: o
 .image-reveal:hover .image-reveal__label { opacity: 1; transform: translateY(0); }
 
 /* Hero */
-.hero { position: relative; display: flex; align-items: flex-end; min-height: 100svh; overflow: hidden; color: var(--cream); background: var(--ink); }
+.hero-scroll-container {
+  position: relative;
+  width: 100%;
+  height: 250vh;
+}
+
+.hero {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: flex-end;
+  height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  color: var(--cream);
+  background: var(--ink);
+}
+
+.hero-canvas-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
 .hero__media, .hero__shade, .hero__shade-sunset { position: absolute; inset: 0; }
 .hero__media .image-reveal, .hero__media img { width: 100%; height: 100%; }
 .hero__media img { filter: saturate(.82); }
-.hero__shade { background: linear-gradient(180deg, rgba(11,60,73,.44) 0%, rgba(127,200,192,.16) 42%, rgba(11,60,73,.88) 100%); z-index: 1; }
+.hero__shade { background: linear-gradient(180deg, rgba(11,60,73,.52) 0%, rgba(11,60,73,.22) 35%, rgba(11,60,73,.88) 100%); z-index: 1; }
 .hero__shade-sunset { background: linear-gradient(180deg, rgba(11,60,73,.22) 0%, rgba(181,83,45,.62) 55%, rgba(11,60,73,.94) 100%); opacity: 0; z-index: 1; pointer-events: none; }
 
 .hero__content { position: relative; z-index: 1; padding-top: clamp(110px, 15vh, 160px); padding-bottom: clamp(170px, 20vh, 240px); }
