@@ -21,6 +21,8 @@ import {
   FooterSection,
 } from './components/ExperienceSections'
 import { BackToTop, CustomCursor, Lightbox, Loader, MarqueeStrip, WaveDivider, WhatsAppFloat } from './components/UI'
+import AdminDashboard from './components/AdminDashboard'
+import TrackReservation from './components/TrackReservation'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -32,6 +34,35 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [lightbox, setLightbox] = useState(null)
   const [reservationIntent, setReservationIntent] = useState(null)
+  const [currentView, setCurrentView] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.toLowerCase()
+      if (hash === '#admin') return 'admin'
+    }
+    return 'main'
+  })
+  const [trackModalOpen, setTrackModalOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.hash.toLowerCase() === '#track'
+    }
+    return false
+  })
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.toLowerCase()
+      if (hash === '#admin') {
+        setCurrentView('admin')
+      } else if (hash === '#track') {
+        setTrackModalOpen(true)
+        setCurrentView('main')
+      } else {
+        setCurrentView('main')
+      }
+    }
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [])
 
   useEffect(() => {
     document.body.classList.toggle('loader-locked', loading)
@@ -327,6 +358,17 @@ export default function App() {
     }
   }
 
+  if (currentView === 'admin') {
+    return (
+      <AdminDashboard
+        onBackToSite={() => {
+          window.location.hash = ''
+          setCurrentView('main')
+        }}
+      />
+    )
+  }
+
   return (
     <>
       {loading && <Loader onComplete={() => setLoading(false)} />}
@@ -390,6 +432,28 @@ export default function App() {
       <FooterSection />
 
       {/* Global Interactive UI */}
+      {trackModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(11, 60, 73, 0.8)',
+          backdropFilter: 'blur(5px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+        }}>
+          <TrackReservation
+            onClose={() => {
+              setTrackModalOpen(false)
+              if (window.location.hash.toLowerCase() === '#track') {
+                window.location.hash = ''
+              }
+            }}
+          />
+        </div>
+      )}
       <Lightbox image={lightbox} onClose={() => setLightbox(null)} />
       <CustomCursor />
       

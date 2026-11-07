@@ -1,10 +1,49 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { siteConfig } from '../data/siteConfig'
 import { ArrowIcon, Button, SectionHeading } from './UI'
+import TonightLive from './TonightLive'
+import { getLiveMusicLineup, getTonightLiveMusic } from '../lib/api'
 
 export default function LiveMusicSection({ onReserve }) {
   const cfg = siteConfig.liveMusic || {}
   const todayDayIndex = useMemo(() => new Date().getDay(), [])
+  const [days, setDays] = useState(cfg.days || [])
+  const [tonightData, setTonightData] = useState(null)
+
+  useEffect(() => {
+    let active = true
+    getLiveMusicLineup()
+      .then((res) => {
+        if (active && res?.days && res.days.length > 0) {
+          setDays((prev) =>
+            prev.map((d) => {
+              const apiMatch = res.days.find((x) => x.day_index === d.dayIndex)
+              if (apiMatch) {
+                return {
+                  ...d,
+                  artist: apiMatch.artist || d.artist,
+                  time: apiMatch.time || d.time,
+                  genre: apiMatch.genre || d.genre,
+                  description: apiMatch.description || d.description,
+                }
+              }
+              return d
+            })
+          )
+        }
+      })
+      .catch(() => {})
+
+    getTonightLiveMusic()
+      .then((t) => {
+        if (active && t) setTonightData(t)
+      })
+      .catch(() => {})
+
+    return () => {
+      active = false
+    }
+  }, [cfg.days])
 
   return (
     <section className="live-music section-dark" id="live-music" aria-labelledby="music-title">
@@ -18,14 +57,20 @@ export default function LiveMusicSection({ onReserve }) {
         <div className="lineup__note">
           <span className="lineup__badge-counter">7 Days a Week</span>
           <p>
-            {cfg.scheduleNote || 'Artist lineup and timings: to be confirmed.'}
+            {tonightData && tonightData.artist && tonightData.artist !== 'Artist lineup: to be confirmed' ? (
+              <span className="tonight-live-pill">
+                <strong>Tonight:</strong> {tonightData.artist} · {tonightData.time}
+              </span>
+            ) : (
+              <TonightLive fallbackText={cfg.scheduleNote || 'Artist lineup and timings: to be confirmed.'} />
+            )}
           </p>
         </div>
       </div>
 
       <div className="lineup-pin">
         <div className="lineup-track">
-          {cfg.days.map((item) => {
+          {days.map((item) => {
             const isToday = item.dayIndex === todayDayIndex
             return (
               <article

@@ -1,11 +1,27 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { siteConfig } from '../data/siteConfig'
 import { ArrowIcon, Button, SectionHeading } from './UI'
+import { getCatchOfTheDay } from '../lib/api'
 
 export default function MenuSection({ onReserveItem }) {
   const menuCfg = siteConfig.menu || {}
   const [activeCategory, setActiveCategory] = useState(menuCfg.categories?.[0]?.id || 'seafood')
   const [vegOnly, setVegOnly] = useState(false)
+  const [catchOfDay, setCatchOfDay] = useState(null)
+
+  useEffect(() => {
+    let active = true
+    getCatchOfTheDay()
+      .then((data) => {
+        if (active && data?.is_active && data.dish_id) {
+          setCatchOfDay(data)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
 
   // Curated imagery for dish preview hover
   const dishImages = {
@@ -87,70 +103,87 @@ export default function MenuSection({ onReserveItem }) {
               </Button>
             </div>
           ) : (
-            filteredItems.map((item, idx) => (
-              <article
-                className={`menu-item ${item.highlight ? 'menu-item--highlight' : ''}`}
-                key={item.id}
-                data-reveal
-                style={{ animationDelay: `${idx * 0.06}s` }}
-              >
-                {/* Optional House Special badge with gentle shine sweep */}
-                {item.highlight && (
-                  <div className="menu-item__badge-special">
-                    <span className="badge-shine" aria-hidden="true" />
-                    ★ HOUSE SPECIAL
-                  </div>
-                )}
+            filteredItems.map((item, idx) => {
+              const isCatchOfDay = catchOfDay && catchOfDay.dish_id === item.id
+              const isHighlighted = item.highlight || isCatchOfDay
 
-                <div className="menu-item__header">
-                  <div className="menu-item__title-wrap">
-                    <span
-                      className={`menu-item__dot ${item.veg ? 'menu-item__dot--veg' : 'menu-item__dot--nonveg'}`}
-                      aria-label={item.veg ? 'Vegetarian' : 'Non-vegetarian'}
-                    >
-                      <i />
-                    </span>
-                    <h3 className="menu-item__name">
-                      <span className="menu-item__name-text">{item.name}</span>
-                    </h3>
-                  </div>
-                  {/* Subtle shimmer text effect replacing static price */}
-                  <span className="menu-item__price price-shimmer">
-                    {item.price || 'Price on menu'}
-                  </span>
-                </div>
-
-                <div className="menu-item__body-wrap">
-                  <p className="menu-item__desc">{item.description}</p>
-                  {/* Sliding dish thumbnail from the right */}
-                  {dishImages[item.id] && (
-                    <div className="menu-item__thumb" aria-hidden="true">
-                      <img src={dishImages[item.id]} alt="" loading="lazy" />
+              return (
+                <article
+                  className={`menu-item ${isHighlighted ? 'menu-item--highlight' : ''}`}
+                  key={item.id}
+                  data-reveal
+                  style={{ animationDelay: `${idx * 0.06}s` }}
+                >
+                  {/* Catch of the day or House special badge */}
+                  {isCatchOfDay ? (
+                    <div className="menu-item__badge-special" style={{ background: 'var(--terracotta, #B5502B)', color: '#FFFFFF' }}>
+                      <span className="badge-shine" aria-hidden="true" />
+                      ★ TODAY'S FRESH CATCH
                     </div>
-                  )}
-                </div>
+                  ) : item.highlight ? (
+                    <div className="menu-item__badge-special">
+                      <span className="badge-shine" aria-hidden="true" />
+                      ★ HOUSE SPECIAL
+                    </div>
+                  ) : null}
 
-                <div className="menu-item__footer">
-                  <span className="menu-item__tag">
-                    {item.highlight ? 'Local Favourite' : item.veg ? 'Vegetarian' : 'Arabian Sea Catch'}
-                  </span>
-                  <a
-                    href="#reservation"
-                    className="menu-item__reserve-link cursor-reserve"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      onReserveItem?.({ notes: `Interested in: ${item.name}` })
-                      // Open WhatsApp directly with dish pre-filled
-                      const text = encodeURIComponent(`Hello God's Own Country Kitchen, I would like to reserve a table to try your "${item.name}".`)
-                      window.open(`https://wa.me/${siteConfig.brand.whatsapp}?text=${text}`, '_blank')
-                    }}
-                  >
-                    <span>Reserve table for this</span>
-                    <ArrowIcon />
-                  </a>
-                </div>
-              </article>
-            ))
+                  <div className="menu-item__header">
+                    <div className="menu-item__title-wrap">
+                      <span
+                        className={`menu-item__dot ${item.veg ? 'menu-item__dot--veg' : 'menu-item__dot--nonveg'}`}
+                        aria-label={item.veg ? 'Vegetarian' : 'Non-vegetarian'}
+                      >
+                        <i />
+                      </span>
+                      <h3 className="menu-item__name">
+                        <span className="menu-item__name-text">{item.name}</span>
+                      </h3>
+                    </div>
+                    {/* Subtle shimmer text effect replacing static price */}
+                    <span className="menu-item__price price-shimmer">
+                      {item.price || 'Price on menu'}
+                    </span>
+                  </div>
+
+                  <div className="menu-item__body-wrap">
+                    <p className="menu-item__desc">
+                      {item.description}
+                      {isCatchOfDay && catchOfDay.note && (
+                        <span style={{ display: 'block', marginTop: '6px', fontStyle: 'italic', color: 'var(--terracotta, #B5502B)', fontWeight: 600 }}>
+                          🌅 Daily landing note: {catchOfDay.note}
+                        </span>
+                      )}
+                    </p>
+                    {/* Sliding dish thumbnail from the right */}
+                    {dishImages[item.id] && (
+                      <div className="menu-item__thumb" aria-hidden="true">
+                        <img src={dishImages[item.id]} alt="" loading="lazy" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="menu-item__footer">
+                    <span className="menu-item__tag">
+                      {isCatchOfDay ? "Today's Landing" : item.highlight ? 'Local Favourite' : item.veg ? 'Vegetarian' : 'Arabian Sea Catch'}
+                    </span>
+                    <a
+                      href="#reservation"
+                      className="menu-item__reserve-link cursor-reserve"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        onReserveItem?.({ notes: `Interested in: ${item.name}` })
+                        // Open WhatsApp directly with dish pre-filled
+                        const text = encodeURIComponent(`Hello God's Own Country Kitchen, I would like to reserve a table to try your "${item.name}".`)
+                        window.open(`https://wa.me/${siteConfig.brand.whatsapp}?text=${text}`, '_blank')
+                      }}
+                    >
+                      <span>Reserve table for this</span>
+                      <ArrowIcon />
+                    </a>
+                  </div>
+                </article>
+              )
+            })
           )}
         </div>
 

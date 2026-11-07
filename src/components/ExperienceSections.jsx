@@ -3,6 +3,7 @@ import { siteConfig, navigation } from '../data/siteConfig'
 import BookingForm from './BookingForm'
 import { ArrowIcon, Button, ImageReveal, SectionHeading } from './UI'
 import brandLogo from '../assets/logo.png'
+import { getReviews, submitReview } from '../lib/api'
 
 export function AboutSection() {
   const logoSrc = brandLogo || siteConfig.brand.logo
@@ -299,8 +300,31 @@ function AnimatedReviewsCounter({ target = 3800, reviewUrl }) {
 export function ReviewsSection() {
   const [active, setActive] = useState(0)
   const data = siteConfig.reviewsData || { reviews: [] }
-  const total = data.reviews?.length || 1
-  const review = data.reviews?.[active] || {}
+  const [reviewsList, setReviewsList] = useState(data.reviews || [])
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
+  const [authorName, setAuthorName] = useState('')
+  const [quoteText, setQuoteText] = useState('')
+  const [rating, setRating] = useState(5)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState('')
+  const [submitError, setSubmitError] = useState('')
+
+  useEffect(() => {
+    let isMounted = true
+    getReviews()
+      .then((res) => {
+        if (isMounted && res?.reviews && res.reviews.length > 0) {
+          setReviewsList(res.reviews)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const total = reviewsList?.length || 1
+  const review = reviewsList?.[active] || {}
 
   // Auto-sliding review carousel
   useEffect(() => {
@@ -309,6 +333,30 @@ export function ReviewsSection() {
     }, 6500)
     return () => clearInterval(timer)
   }, [total])
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitError('')
+    setSubmitSuccess('')
+    if (!authorName.trim() || !quoteText.trim()) {
+      return setSubmitError('Please enter both your name and review text.')
+    }
+    setSubmitting(true)
+    try {
+      await submitReview({
+        author: authorName.trim(),
+        quote: quoteText.trim(),
+        rating,
+      })
+      setSubmitSuccess('Thank you! Your review has been submitted for moderation and will appear once approved.')
+      setAuthorName('')
+      setQuoteText('')
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit review.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <section className="reviews section-ink" id="reviews" aria-labelledby="reviews-title">
@@ -327,7 +375,7 @@ export function ReviewsSection() {
 
         <div className="review-card" data-reveal key={active}>
           <div className="review-card__stars" aria-label="5 out of 5 stars">
-            {'★★★★★'.split('').map((star, sIdx) => (
+            {'★★★★★'.slice(0, review.rating || 5).split('').map((star, sIdx) => (
               <span className="star-pop" key={sIdx} style={{ animationDelay: `${sIdx * 0.08}s` }}>{star}</span>
             ))}
           </div>
@@ -335,7 +383,7 @@ export function ReviewsSection() {
           <blockquote>{review.quote}</blockquote>
           <div className="review-card__meta">
             <span>{review.author}</span>
-            <small>{review.source}</small>
+            <small>{review.source || 'Verified review'}</small>
           </div>
           <div className="review-card__controls">
             <button
@@ -355,6 +403,141 @@ export function ReviewsSection() {
             </button>
           </div>
         </div>
+
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <button
+            type="button"
+            onClick={() => setShowSubmitModal(true)}
+            style={{
+              padding: '8px 18px',
+              background: 'transparent',
+              border: '1px solid rgba(247, 244, 238, 0.4)',
+              color: 'var(--sand, #F3E9D7)',
+              borderRadius: '999px',
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            ✍ Share Your Dining Experience
+          </button>
+        </div>
+
+        {/* Modal for submitting a review */}
+        {showSubmitModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(11, 60, 73, 0.78)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}>
+            <div style={{
+              background: '#FAF6EE',
+              color: '#0B3C49',
+              borderRadius: '8px',
+              padding: '28px',
+              maxWidth: '480px',
+              width: '100%',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontFamily: 'var(--display, serif)', fontSize: '1.4rem' }}>
+                  Leave a Review
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowSubmitModal(false)}
+                  style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: '#0B3C49' }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {submitSuccess ? (
+                <div style={{ padding: '16px', background: '#D5F5E3', color: '#196F3D', borderRadius: '4px', fontSize: '0.84rem' }}>
+                  {submitSuccess}
+                  <button
+                    type="button"
+                    onClick={() => setShowSubmitModal(false)}
+                    style={{ marginTop: '12px', display: 'block', padding: '6px 14px', background: '#196F3D', color: '#FFF', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleReviewSubmit} style={{ display: 'grid', gap: '14px' }}>
+                  {submitError && (
+                    <div style={{ padding: '8px 12px', background: '#FADBD8', color: '#922B21', borderRadius: '4px', fontSize: '0.78rem' }}>
+                      {submitError}
+                    </div>
+                  )}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={authorName}
+                      onChange={(e) => setAuthorName(e.target.value)}
+                      placeholder="e.g. Maya S."
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '4px', border: '1px solid #CCC', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Rating
+                    </label>
+                    <select
+                      value={rating}
+                      onChange={(e) => setRating(Number(e.target.value))}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '4px', border: '1px solid #CCC', fontSize: '0.85rem' }}
+                    >
+                      <option value={5}>★★★★★ (5 / 5 - Exceptional)</option>
+                      <option value={4}>★★★★☆ (4 / 5 - Great)</option>
+                      <option value={3}>★★★☆☆ (3 / 5 - Good)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Your Review *
+                    </label>
+                    <textarea
+                      rows={3}
+                      required
+                      value={quoteText}
+                      onChange={(e) => setQuoteText(e.target.value)}
+                      placeholder="Share your thoughts about the cliff sunset, fresh seafood or live music..."
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '4px', border: '1px solid #CCC', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="button button--primary"
+                    disabled={submitting}
+                    style={{ justifyContent: 'center' }}
+                  >
+                    <span>{submitting ? 'Submitting...' : 'Submit Review'}</span>
+                    <ArrowIcon />
+                  </button>
+                  <small style={{ color: '#666', fontSize: '0.68rem', textAlign: 'center' }}>
+                    Note: To preserve quality, all guest reviews are moderated before appearing publicly.
+                  </small>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )
@@ -541,11 +724,13 @@ export function FooterSection() {
             {navigation.map((item) => (
               <a key={item.href} href={item.href}>{item.label}</a>
             ))}
+            <a href="#track">Track Reservation</a>
           </div>
           <div>
             <span>Connect</span>
             <a href={siteConfig.brand.phoneHref} target="_blank" rel="noreferrer">WhatsApp Reservation</a>
             <a href={siteConfig.brand.mapsUrl} target="_blank" rel="noreferrer">Google Maps Location</a>
+            <a href="#admin">Staff & Admin Portal</a>
           </div>
         </div>
       </div>
